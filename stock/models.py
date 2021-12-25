@@ -1,3 +1,59 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
+
+ACTIONS = [
+    ("BUY", "buy"),
+    ("SEL", "sell"),
+]
+
+
+class Stock(models.Model):
+    symbol = models.CharField(max_length=20)
+    name = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
+    ipo = models.DateField()
+
+    def __str__(self) -> str:
+        return f"{self.symbol}-{self.name}"
+
+
+class Portfolio(models.Model):
+    stock = models.OneToOneField(Stock, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    temprary_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.IntegerField()
+
+    def __str__(self) -> str:
+        return f"{self.stock}"
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.CASCADE,
+        related_name="profile",
+        blank=True,
+        null=True,
+    )
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=10000)
+
+    def __str__(self) -> str:
+        return f"{self.user}"
+
+
+class Operation(models.Model):
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="operation_history"
+    )
+    action = models.CharField(max_length=3, choices=ACTIONS)
+    share = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    quantitiy = models.IntegerField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.action}-{self.date}"

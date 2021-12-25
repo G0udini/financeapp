@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import socket 
+import socket
 import os
 from pathlib import Path
 
@@ -37,7 +37,7 @@ INTERNAL_IPS = [
 ]
 
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-INTERNAL_IPS = [ip[:-1] + '1' for ip in ips] + ['127.0.0.1', '10.0.2.2']
+INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 # Application definition
 
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "stock",
     # 3rd apps
     "debug_toolbar",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
