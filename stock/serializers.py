@@ -16,6 +16,12 @@ class StockSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class StockListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stock
+        fields = ["symbol", "name"]
+
+
 class PortfolioSerializer(serializers.ModelSerializer):
     stock = serializers.StringRelatedField()
 

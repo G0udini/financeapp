@@ -5,7 +5,13 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Operation, Profile, Stock
-from .serializers import OperationSerializer, ProfileSerializer, StockSerializer
+from .serializers import (
+    OperationSerializer,
+    ProfileSerializer,
+    StockSerializer,
+    StockListSerializer,
+)
+from .services import FinnHub
 
 
 class StockListView(ListAPIView):

@@ -27,23 +27,43 @@ class FinnHub:
         stock_history = stock_history["c"]
         return stock_history
 
-    def get_stock_by_search(self, symb: str) -> Optional[list[dict[str, str]]]:
+    def get_stock_by_search(
+        self, symb: str, cnt: int = 5
+    ) -> Optional[list[dict[str, str]]]:
         stock_list = self.client.symbol_lookup(symb)
-        stock_company = stock_list["result"][0]
-        if stock_company:
-            return {
-                "company": stock_company["description"],
-                "symb": stock_company["symbol"],
-            }
+        if stock_list["count"]:
+            if cnt:
+                stock_companies = stock_list["result"]
+                return (
+                    {
+                        "symbol": stock_company["symbol"],
+                        "name": stock_company["description"],
+                    }
+                    for stock_company in stock_companies
+                )
+            else:
+                stock_company = stock_list["result"][cnt]
+                return {
+                    "symbol": stock_company["symbol"],
+                    "name": stock_company["description"],
+                }
         return
 
     def get_company_info(self, symb: str) -> Optional[dict[str, str]]:
         company = self.client.company_profile2(symbol=symb)
         if company:
             return {
-                company["country"],
-                company["ipo"],
-                company["name"],
-                company["ticker"],
+                "country": company["country"],
+                "ipo": company["ipo"],
+                "name": company["name"],
+                "symbol": company["ticker"],
             }
         return
+
+    def search_for_company_info(self, symb: str) -> Optional[dict[str, str]]:
+        try:
+            intermediate_result = self.get_stock_by_search(symb, 0)["symbol"]
+        except TypeError:
+            return
+        else:
+            return self.get_company_info(intermediate_result)
