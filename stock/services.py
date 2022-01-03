@@ -9,10 +9,10 @@ class FinnHub:
         self.api_key = os.getenv("API_KEY")
         self.client = finnhub.Client(api_key=self.api_key)
 
-    def get_current_stock_price(self, symb: str) -> Optional[float]:
+    def get_current_stock_price(self, symb: str) -> Optional[dict[str, float]]:
         finn_data = self.client.quote(symb)
         if finn_data["c"]:
-            return finn_data["c"]
+            return {"price": finn_data["c"], "change": finn_data["dp"]}
         return
 
     def get_candle_stock_price(self, symb: str) -> Optional[list[float]]:
@@ -27,26 +27,17 @@ class FinnHub:
         stock_history = stock_history["c"]
         return stock_history
 
-    def get_stock_by_search(
-        self, symb: str, cnt: int = 5
-    ) -> Optional[list[dict[str, str]]]:
+    def get_stock_by_search(self, symb: str) -> Optional[list[dict[str, str]]]:
         stock_list = self.client.symbol_lookup(symb)
         if stock_list["count"]:
-            if cnt:
-                stock_companies = stock_list["result"]
-                return (
-                    {
-                        "symbol": stock_company["symbol"],
-                        "name": stock_company["description"],
-                    }
-                    for stock_company in stock_companies
-                )
-            else:
-                stock_company = stock_list["result"][cnt]
-                return {
+            stock_companies = stock_list["result"]
+            return (
+                {
                     "symbol": stock_company["symbol"],
                     "name": stock_company["description"],
                 }
+                for stock_company in stock_companies
+            )
         return
 
     def get_company_info(self, symb: str) -> Optional[dict[str, str]]:

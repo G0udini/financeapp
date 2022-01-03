@@ -1,5 +1,6 @@
-# from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
@@ -14,9 +15,20 @@ from .serializers import (
 from .services import FinnHub
 
 
-class StockListView(ListAPIView):
-    serializer_class = StockSerializer
-    queryset = Stock.objects.all()
+
+
+class StockListView(APIView):
+    def get_queryset(self):
+        queryset = Stock.objects.all()
+        search_query = self.request.query_params.get("search", None)
+        if search_query:
+            queryset = finn_client.get_stock_by_search(search_query)
+        return queryset
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = StockListSerializer(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class ProfileRetrieveView(RetrieveAPIView):

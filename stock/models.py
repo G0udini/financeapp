@@ -9,7 +9,7 @@ ACTIONS = [
 
 
 class Stock(models.Model):
-    symbol = models.CharField(max_length=20)
+    symbol = models.CharField(max_length=20, db_index=True)
     name = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
     ipo = models.DateField()
@@ -28,7 +28,9 @@ class Profile(models.Model):
 
 class Portfolio(models.Model):
     stock = models.OneToOneField(Stock, on_delete=models.PROTECT)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="portfolios")
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="portfolios"
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     temprary_amount = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
