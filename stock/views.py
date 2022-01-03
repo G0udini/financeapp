@@ -12,9 +12,19 @@ from .serializers import (
     StockSerializer,
     StockListSerializer,
 )
-from .services import FinnHub
+from .services import FinnHub, seconds_to_minute_change
+
+import redis
 
 
+r = redis.StrictRedis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+    charset="utf-8",
+    decode_responses=True,
+)
+finn_client = FinnHub()
 
 
 class StockListView(APIView):
@@ -28,6 +38,35 @@ class StockListView(APIView):
     def get(self, request):
         queryset = self.get_queryset()
         serializer = StockListSerializer(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class StockView(APIView):
+    def get_queryset(self, symbol):
+        try:
+            stock = Stock.objects.get(symbol=symbol)
+        except ObjectDoesNotExist:
+            company = finn_client.get_company_info(symbol)
+            stock = Stock.objects.create(**company)
+        if stock:
+            quote = r.get(f"{stock.symbol}")
+            if not quote:
+                quote = finn_client.get_current_stock_price(stock.symbol)
+                r.set(
+                    f"{stock.symbol}",
+                    f"{quote['price']}|{quote['change']}",
+                    seconds_to_minute_change(),
+                )
+            else:
+                price, change = str(quote).split("|")
+                quote = {"price": price, "change": change}
+            return stock, quote
+        return
+
+    def get(self, request, symbol):
+
+        query_obj, quote = self.get_queryset(symbol)
+        serializer = StockSerializer(query_obj, context=quote)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 

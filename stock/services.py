@@ -51,10 +51,10 @@ class FinnHub:
             }
         return
 
-    def search_for_company_info(self, symb: str) -> Optional[dict[str, str]]:
-        try:
-            intermediate_result = self.get_stock_by_search(symb, 0)["symbol"]
-        except TypeError:
-            return
-        else:
-            return self.get_company_info(intermediate_result)
+
+def seconds_to_minute_change():
+    now = datetime.datetime.now()
+    next_minute = datetime.datetime(
+        now.year, now.month, now.day, now.hour, now.minute + 1
+    )
+    return (next_minute - now).seconds

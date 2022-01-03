@@ -11,9 +11,18 @@ from .models import Operation, Portfolio, Profile, Stock
 
 
 class StockSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
+    change = serializers.SerializerMethodField()
+
     class Meta:
         model = Stock
         fields = "__all__"
+
+    def get_price(self, obj):
+        return float(self.context.get("price"))
+
+    def get_change(self, obj):
+        return float(self.context.get("change"))
 
 
 class StockListSerializer(serializers.ModelSerializer):
