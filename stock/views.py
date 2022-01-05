@@ -59,11 +59,9 @@ class StockView(APIView):
         quote = get_stock(r, finn_client, symbol)
         return stock, quote
 
-    def post_sell(self, serializer, profile, total, serializer_quantity):
+    def post_sell(self, serializer, profile, total, context, serializer_quantity):
         try:
-            portfolio = Portfolio.objects.get(
-                profile=profile, stock=serializer.validated_data["share"]
-            )
+            portfolio = Portfolio.objects.get(profile=profile, stock=context["share"])
         except ObjectDoesNotExist:
             return Response(
                 data={"data": "You don't have stock in profile"},
@@ -83,16 +81,16 @@ class StockView(APIView):
 
         profile.balance += total
         profile.save()
-        serializer.save(total=total)
+        serializer.save(total=total, share=context["share"], user=context["user"])
 
-    def post_buy(self, serializer, profile, total, serializer_quantity):
+    def post_buy(self, serializer, profile, total, context, serializer_quantity):
         if profile.balance < total:
             return Response(
                 data={"data": "Not enough balance"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         portfolio, _ = Portfolio.objects.get_or_create(
-            profile=profile, stock=serializer.validated_data["share"]
+            profile=profile, stock=context["share"]
         )
         portfolio.quantity += serializer_quantity
         portfolio.amount += total
@@ -103,7 +101,7 @@ class StockView(APIView):
 
         profile.balance -= total
         profile.save()
-        serializer.save(total=total)
+        serializer.save(total=total, share=context["share"], user=context["user"])
 
     def get(self, request, symbol):
         query_obj, quote = self.get_queryset(symbol)
@@ -122,27 +120,29 @@ class StockView(APIView):
                 data={"data": "Price is not supported"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        request.data["user"] = request.user.id
         request.data["price"] = Decimal(price["price"]).quantize(TWOPLACES)
-        request.data["share"] = query_obj.id
         serializer = OperationPostSerializer(data=request.data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             total = (
                 serializer.validated_data["price"]
                 * serializer.validated_data["quantity"]
             )
             profile = Profile.objects.get(user=request.user)
             serializer_quantity = serializer.validated_data["quantity"]
+            context = {
+                "user": request.user,
+                "share": query_obj,
+            }
 
             with transaction.atomic():
                 if serializer.validated_data["action"] == "SEL":
                     response = self.post_sell(
-                        serializer, profile, total, serializer_quantity
+                        serializer, profile, total, context, serializer_quantity
                     )
                 if serializer.validated_data["action"] == "BUY":
                     response = self.post_buy(
-                        serializer, profile, total, serializer_quantity
+                        serializer, profile, total, context, serializer_quantity
                     )
             if response:
                 return response
