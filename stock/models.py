@@ -31,9 +31,9 @@ class Portfolio(models.Model):
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="portfolios"
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    temprary_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.IntegerField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    avg_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    quantity = models.IntegerField(default=0)
 
     def __str__(self) -> str:
         return f"{self.stock}"
@@ -45,11 +45,14 @@ class Operation(models.Model):
         User, on_delete=models.CASCADE, related_name="operation_history"
     )
     action = models.CharField(max_length=3, choices=ACTIONS)
-    share = models.OneToOneField(Stock, on_delete=models.DO_NOTHING)
+    share = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantitiy = models.IntegerField()
+    quantity = models.IntegerField()
     total = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date"]
 
     def __str__(self) -> str:
         return f"{self.action}-{self.date}"

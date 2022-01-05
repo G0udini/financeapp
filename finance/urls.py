@@ -21,3 +21,4 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("", include("stock.urls")),
 ]
+urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]

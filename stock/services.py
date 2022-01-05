@@ -11,7 +11,7 @@ class FinnHub:
 
     def get_current_stock_price(self, symb: str) -> Optional[dict[str, float]]:
         finn_data = self.client.quote(symb)
-        if finn_data["c"]:
+        if finn_data["c"] > 0 and finn_data["dp"]:
             return {"price": finn_data["c"], "change": finn_data["dp"]}
         return
 
@@ -52,9 +52,27 @@ class FinnHub:
         return
 
 
-def seconds_to_minute_change():
+def seconds_to_minute_change() -> int:
     now = datetime.datetime.now()
     next_minute = datetime.datetime(
         now.year, now.month, now.day, now.hour, now.minute + 1
     )
     return (next_minute - now).seconds
+
+
+def get_stock(r, finn_client: FinnHub, symbol: str) -> dict[str, float]:
+    quote = r.get(f"{symbol}")
+    if not quote:
+        quote = finn_client.get_current_stock_price(symbol)
+        if quote:
+            r.set(
+                f"{symbol}",
+                f"{quote['price']}|{quote['change']}",
+                seconds_to_minute_change(),
+            )
+        else:
+            return
+    else:
+        price, change = str(quote).split("|")
+        quote = {"price": price, "change": change}
+    return quote

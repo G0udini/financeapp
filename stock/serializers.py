@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
-from django.db.models import fields
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from .models import Operation, Portfolio, Profile, Stock
 
 
 # class UserSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = User
-#         fields = ("username",)
+#         fields = "__all__"
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -55,3 +55,22 @@ class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
         fields = "__all__"
+
+
+class OperationPostSerializer(serializers.ModelSerializer):
+    # user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    # share = serializers.PrimaryKeyRelatedField(queryset=Stock.objects.all())
+
+    class Meta:
+        model = Operation
+        fields = ("price", "quantity", "user", "share", "action")
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise ValidationError("Price must be positive integer.")
+        return value
+
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise ValidationError("Quantity must be positive integer.")
+        return value
