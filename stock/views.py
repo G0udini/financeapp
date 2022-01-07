@@ -49,7 +49,7 @@ class StockListView(APIView):
 
 
 class StockView(APIView):
-    def get_queryset(self, symbol):
+    def get_queryset(self, symbol: str, method: str):
         try:
             stock = Stock.objects.get(symbol=symbol)
         except ObjectDoesNotExist:
@@ -57,14 +57,20 @@ class StockView(APIView):
             if company:
                 stock = Stock.objects.create(**company)
             else:
-                return None, None
+                return None, None, None, None
         quote = get_stock(r, finn_client, symbol)
+        if method == "POST":
+            profile = Profile.objects.get(user=self.request.user)
+            try:
+                portfolio = Portfolio.objects.get(profile=profile, stock=stock)
+            except ObjectDoesNotExist:
+                portfolio = None
+            return stock, quote, profile, portfolio
         return stock, quote
 
-    def post_sell(self, serializer, profile, total, context, serializer_quantity):
-        try:
-            portfolio = Portfolio.objects.get(profile=profile, stock=context["share"])
-        except ObjectDoesNotExist:
+    def post_sell(self, serializer, profile, portfolio, total, context):
+        serializer_quantity = serializer.validated_data["quantity"]
+        if not portfolio:
             return Response(
                 data={"data": "You don't have stock in profile"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -85,16 +91,15 @@ class StockView(APIView):
         profile.save()
         serializer.save(total=total, share=context["share"], user=context["user"])
 
-    def post_buy(self, serializer, profile, total, context, serializer_quantity):
+    def post_buy(self, serializer, profile, portfolio, total, context):
         if profile.balance < total:
             return Response(
                 data={"data": "Not enough balance"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        portfolio, _ = Portfolio.objects.get_or_create(
-            profile=profile, stock=context["share"]
-        )
-        portfolio.quantity += serializer_quantity
+        if not portfolio:
+            portfolio = Portfolio(profile=profile, stock=context["share"])
+        portfolio.quantity += serializer.validated_data["quantity"]
         portfolio.amount += total
         portfolio.avg_price = Decimal(portfolio.amount / portfolio.quantity).quantize(
             TWOPLACES
@@ -106,7 +111,7 @@ class StockView(APIView):
         serializer.save(total=total, share=context["share"], user=context["user"])
 
     def get(self, request, symbol):
-        query_obj, quote = self.get_queryset(symbol)
+        query_obj, quote, *_ = self.get_queryset(symbol, "GET")
         if query_obj and quote:
             serializer = StockSerializer(query_obj, context=quote)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -116,7 +121,7 @@ class StockView(APIView):
         )
 
     def post(self, request, symbol):
-        query_obj, price = self.get_queryset(symbol)
+        query_obj, price, profile, portfolio = self.get_queryset(symbol, "POST")
         if not price:
             return Response(
                 data={"data": "Price is not supported"},
@@ -130,8 +135,6 @@ class StockView(APIView):
                 serializer.validated_data["price"]
                 * serializer.validated_data["quantity"]
             )
-            profile = Profile.objects.get(user=request.user)
-            serializer_quantity = serializer.validated_data["quantity"]
             context = {
                 "user": request.user,
                 "share": query_obj,
@@ -140,11 +143,11 @@ class StockView(APIView):
             with transaction.atomic():
                 if serializer.validated_data["action"] == "SEL":
                     response = self.post_sell(
-                        serializer, profile, total, context, serializer_quantity
+                        serializer, profile, portfolio, total, context
                     )
                 if serializer.validated_data["action"] == "BUY":
                     response = self.post_buy(
-                        serializer, profile, total, context, serializer_quantity
+                        serializer, profile, portfolio, total, context
                     )
             if response:
                 return response
