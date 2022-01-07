@@ -29,7 +29,7 @@ class PortfolioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Portfolio
-        fields = ("stock", "quantity", "amount", "temprary_amount")
+        fields = ("stock", "quantity", "amount", "avg_price")
 
 
 class ProfileSerializer(serializers.ModelSerializer):

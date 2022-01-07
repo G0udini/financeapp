@@ -54,9 +54,12 @@ class FinnHub:
 
 def seconds_to_minute_change() -> int:
     now = datetime.datetime.now()
-    next_minute = datetime.datetime(
-        now.year, now.month, now.day, now.hour, now.minute + 1
-    )
+    if now.minute == 59:
+        next_minute = datetime.datetime(now.year, now.month, now.day, now.hour + 1, 0)
+    else:
+        next_minute = datetime.datetime(
+            now.year, now.month, now.day, now.hour, now.minute + 1
+        )
     return (next_minute - now).seconds
 
 

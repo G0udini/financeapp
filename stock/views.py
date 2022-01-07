@@ -161,9 +161,9 @@ class ProfileRetrieveView(RetrieveAPIView):
     )
 
     def get_object(self):
+        user = self.request.user
         queryset = self.get_queryset()
-        username = self.kwargs.get("username")
-        return get_object_or_404(queryset, user__username=username)
+        return get_object_or_404(queryset, user=user)
 
 
 class OperationListView(ListAPIView):
