@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from stock.paginations import OperationPagination
 from .models import Operation, Portfolio, Profile, Stock
 from .serializers import (
     OperationSerializer,
@@ -15,7 +17,7 @@ from .serializers import (
     StockListSerializer,
 )
 from .services import FinnHub, get_stock
-
+from .paginations import OperationPagination
 import redis
 from decimal import Decimal
 
@@ -123,7 +125,7 @@ class StockView(APIView):
         request.data["price"] = Decimal(price["price"]).quantize(TWOPLACES)
         serializer = OperationPostSerializer(data=request.data)
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             total = (
                 serializer.validated_data["price"]
                 * serializer.validated_data["quantity"]
@@ -166,11 +168,8 @@ class ProfileRetrieveView(RetrieveAPIView):
 
 class OperationListView(ListAPIView):
     serializer_class = OperationSerializer
+    pagination_class = OperationPagination
 
     def get_queryset(self):
-        username = self.kwargs.get("username")
-        return (
-            Operation.objects.select_related("user")
-            .select_related("share")
-            .filter(user__username=username)
-        )
+        user = self.request.user
+        return Operation.objects.select_related("share").filter(user=user)

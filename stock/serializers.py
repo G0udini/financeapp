@@ -21,7 +21,7 @@ class StockSerializer(serializers.ModelSerializer):
 class StockListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
-        fields = ["symbol", "name"]
+        fields = ("symbol", "name")
 
 
 class PortfolioSerializer(serializers.ModelSerializer):
@@ -42,12 +42,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class OperationSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
     share = serializers.StringRelatedField()
 
     class Meta:
         model = Operation
-        fields = "__all__"
+        exclude = ("user",)
 
 
 class OperationPostSerializer(serializers.ModelSerializer):
