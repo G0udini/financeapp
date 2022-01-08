@@ -10,5 +10,5 @@ urlpatterns = [
         OperationListView.as_view(),
         name="profile_history",
     ),
-    path("profile/<str:username>/", ProfileRetrieveView.as_view(), name="profile"),
+    path("profile/", ProfileRetrieveView.as_view(), name="profile"),
 ]

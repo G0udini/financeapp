@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from stock.paginations import OperationPagination
 from .models import Operation, Portfolio, Profile, Stock
@@ -49,6 +50,8 @@ class StockListView(APIView):
 
 
 class StockView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_queryset(self, symbol: str, method: str):
         try:
             stock = Stock.objects.get(symbol=symbol)
@@ -111,7 +114,7 @@ class StockView(APIView):
         serializer.save(total=total, share=context["share"], user=context["user"])
 
     def get(self, request, symbol):
-        query_obj, quote, *_ = self.get_queryset(symbol, "GET")
+        query_obj, quote, *_ = self.get_queryset(symbol, request.method)
         if query_obj and quote:
             serializer = StockSerializer(query_obj, context=quote)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -121,7 +124,7 @@ class StockView(APIView):
         )
 
     def post(self, request, symbol):
-        query_obj, price, profile, portfolio = self.get_queryset(symbol, "POST")
+        query_obj, price, profile, portfolio = self.get_queryset(symbol, request.method)
         if not price:
             return Response(
                 data={"data": "Price is not supported"},
@@ -158,6 +161,7 @@ class StockView(APIView):
 
 
 class ProfileRetrieveView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     queryset = Profile.objects.select_related("user").prefetch_related(
         "portfolios", "portfolios__stock"
@@ -170,6 +174,7 @@ class ProfileRetrieveView(RetrieveAPIView):
 
 
 class OperationListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = OperationSerializer
     pagination_class = OperationPagination
 
