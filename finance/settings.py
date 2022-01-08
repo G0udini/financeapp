@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     # "debug_toolbar",
     "silk",
     "rest_framework",
+    "djoser",
 ]
 
 MIDDLEWARE = [
@@ -150,3 +151,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_DB = os.getenv("REDIS_DB")
+
+
+# DRF settings
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
