@@ -38,9 +38,6 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-# hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-# INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -53,7 +50,6 @@ INSTALLED_APPS = [
     # Custom
     "stock",
     # 3rd apps
-    # "debug_toolbar",
     "silk",
     "rest_framework",
     "djoser",
@@ -67,7 +63,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "debug_toolbar.middleware.DebugToolbarMiddleware",
     "silk.middleware.SilkyMiddleware",
 ]
 
