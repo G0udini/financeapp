@@ -31,6 +31,6 @@ This app was made to:
 1. Learn how to trade(buy/sell stocks, observer price change) because api provides real time prices
 2. Try it without threat to your real money
 
-**stocklist** - to find interesting meta stock info
-**stocklist/APPL** - to get info about company and current price or price dynamics for the year / or to buy and sell companies stocks
+**stocklist** - to find interesting meta stock info \
+**stocklist/APPL** - to get info about company and current price or price dynamics for the year / or to buy and sell companies stocks \
 **profile** - to get information about your current portfolio and operation history
