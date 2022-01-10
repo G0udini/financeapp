@@ -49,6 +49,17 @@ class StockListView(APIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
+class StockHistoryView(APIView):
+    def get(self, request, symbol: str):
+        stock_history = finn_client.get_candle_stock_price(symbol)
+        if stock_history:
+            return Response(data={"data": stock_history}, status=status.HTTP_200_OK)
+        return Response(
+            data={"data": "Service is not available"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class StockView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
