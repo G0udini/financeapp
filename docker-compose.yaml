@@ -21,6 +21,18 @@ services:
       - 6379:6379
     volumes:
       - redisdata:/data
+    
+  celery:
+    build: .
+    restart: always
+    command: celery -A finance worker -B -l INFO
+    volumes:
+      - .:/usr/src/app/
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis
 
 volumes:
   redisdata:

@@ -10,10 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import socket
 import os
 from datetime import timedelta
 from pathlib import Path
+from celery.schedules import crontab
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -142,6 +142,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Default smtp server
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
 # Redis settings
 
 REDIS_HOST = os.getenv("REDIS_HOST")
@@ -162,4 +167,18 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
+}
+
+# Celery settings
+
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_RESULT_SEIALIZER = "json"
+
+CELERY_BEAT_SCHEDULE = {
+    "every-hour-notice": {
+        "task": "stock.tasks.price_check",
+        "schedule": crontab(minute=0, hour="*/1"),
+    },
 }
