@@ -34,3 +34,11 @@ This app was made to:
 **stocklist** - to find interesting meta stock info \
 **stocklist/APPL** - to get info about company and current price or price dynamics for the year / or to buy and sell companies stocks \
 **profile** - to get information about your current portfolio and operation history
+
+## Features
+
+1. DRF for REST API
+2. Custom Redis caching
+3. Celery for periodic sending email
+4. Transactions for balance operation
+5. Dynamic serializer fields
