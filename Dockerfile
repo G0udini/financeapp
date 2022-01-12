@@ -13,5 +13,3 @@ RUN apt-get update \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
-CMD python manage.py migrate --noinput
